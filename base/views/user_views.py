@@ -21,6 +21,48 @@ from base.serializers import UserSerializer,UserSerializerWithToken
 
 
 
+
+
+# JWT Views
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+       
+        serializer = UserSerializerWithToken(self.user).data
+
+        for k,v in serializer.items():
+            data[k] =v
+
+        return data
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token['username'] = user.username
+        token['message'] = "Hello Proshop"
+        # ...
+
+        return token
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+
+
+# SHOP API
+@api_view(['GET'])
+def getRoutes(request):
+    routes =[
+        '/api/products/',
+        '/api/products/<id>',
+        '/api/users',
+        '/api/users/register',
+        '/api/users/login',
+        '/api/users/profile',
+    ]
+    return Response(routes)
+
+
 @api_view(['POST'])
 def registerUser(request):
     data = request.data
